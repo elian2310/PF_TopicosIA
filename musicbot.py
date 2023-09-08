@@ -44,3 +44,14 @@ overlap = 30
 splitter = RecursiveCharacterTextSplitter(chunk_size = chunkSize, chunk_overlap = overlap)
 
 pdfSplits = splitter.split_documents(loadedPdf)
+
+# VECTOR STORAGE
+
+embeddings = OpenAIEmbeddings()
+
+sentence1 = "a"
+embedding1 = embeddings.embed_query(sentence1)
+
+db_directory = 'docs/chroma'
+vectordb = Chroma.from_documents(documents=pdfSplits, embedding=embeddings, persist_directory=db_directory)
+vectordb.persist()
