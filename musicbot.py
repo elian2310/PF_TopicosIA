@@ -35,4 +35,12 @@ for i in range(len(csvLoaders)):
 
 for i in range(len(pdfLoaders)):
   loadedPdf.append(pdfLoaders[i].load())
-  
+
+# SPLIT DATA
+
+chunkSize = 300
+overlap = 30
+
+splitter = RecursiveCharacterTextSplitter(chunk_size = chunkSize, chunk_overlap = overlap)
+
+pdfSplits = splitter.split_documents(loadedPdf)
