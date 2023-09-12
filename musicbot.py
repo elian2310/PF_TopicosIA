@@ -7,6 +7,8 @@ from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.text_splitter  import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
+from langchain.chains import ConversationalRetrievalChain
+from langchain.chat_models import ChatOpenAI
 from chromadb.api.types import Embeddings
 
 os.environ["OPENAI_API_KEY"] = "openIAKEY"
@@ -22,7 +24,7 @@ csvLoaders = []
 pdfLoaders = []
 
 for i in range(csvs):
-  csvLoaders.append(CSVLoader(file_path=f"csv{i}.csv"))
+  csvLoaders.append(CSVLoader(file_path=f"csv{i}.csv", encoding="utf-8", csv_args={'delimiter': ','}))
 
 for i in range(pdfs):
   pdfLoaders.append(PyPDFLoader(f"pdf{i}.pdf"))
@@ -38,10 +40,7 @@ for i in range(len(pdfLoaders)):
 
 # SPLIT DATA
 
-chunkSize = 300
-overlap = 30
-
-splitter = RecursiveCharacterTextSplitter(chunk_size = chunkSize, chunk_overlap = overlap)
+splitter = RecursiveCharacterTextSplitter(chunk_size = 300, chunk_overlap = 30, separators = "\n")
 
 pdfSplits = splitter.split_documents(loadedPdf)
 
@@ -49,9 +48,17 @@ pdfSplits = splitter.split_documents(loadedPdf)
 
 embeddings = OpenAIEmbeddings()
 
-sentence1 = "a"
-embedding1 = embeddings.embed_query(sentence1)
-
 db_directory = 'docs/chroma'
-vectordb = Chroma.from_documents(documents=pdfSplits, embedding=embeddings, persist_directory=db_directory)
+
+vectordb = Chroma(embeddings=embeddings, persist_directory=db_directory)
+vectordb.add_documents(documents=pdfSplits)
+vectordb.add_documents(documents=loadedCsv)
+
 vectordb.persist()
+
+# CONVERSATIONAL CHAIN
+
+chain = ConversationalRetrievalChain.from_llm(
+  llm = ChatOpenAI(temperature=0.0,model_name='gpt-3.5-turbo'),
+  retriever = vectordb.as_retriever()
+)
