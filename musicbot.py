@@ -13,6 +13,8 @@ from langchain.vectorstores import Chroma
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from chromadb.api.types import Embeddings
+from fastapi import FastAPI
+
 
 os.environ["OPENAI_API_KEY"] = "openIAKEY"
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -27,10 +29,10 @@ csvLoaders = []
 pdfLoaders = []
 
 for i in range(csvs):
-  csvLoaders.append(CSVLoader(file_path=f"csv{i}.csv", encoding="utf-8", csv_args={'delimiter': ','}))
+  csvLoaders.append(CSVLoader(file_path=f"./data/CSV/csv{i}.csv", encoding="utf-8", csv_args={'delimiter': ','}))
 
 for i in range(pdfs):
-  pdfLoaders.append(PyPDFLoader(f"pdf{i}.pdf"))
+  pdfLoaders.append(PyPDFLoader(f"./data/PDF/pdf{i}.pdf"))
 
 loadedCsv = []
 loadedPdf = []
@@ -58,16 +60,3 @@ vectordb.add_documents(documents=pdfSplits)
 vectordb.add_documents(documents=loadedCsv)
 
 vectordb.persist()
-
-# CONVERSATIONAL CHAIN
-
-chain = ConversationalRetrievalChain.from_llm(
-  llm = ChatOpenAI(temperature=0.0,model_name='gpt-3.5-turbo'),
-  retriever = vectordb.as_retriever()
-)
-
-def chat(prompt):
-  response = chain({"question": prompt,
-                    "chat_history": st.session_state['history']})
-  st.session_state['history'].append((prompt, response["answer"]))
-  return response["answer"]
