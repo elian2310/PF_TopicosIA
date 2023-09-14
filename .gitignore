@@ -1,2 +1,3 @@
 /data/
-/docs/chroma/
+/docs/
+/__pycache__/
