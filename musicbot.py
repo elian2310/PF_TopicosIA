@@ -15,7 +15,7 @@ from chromadb.api.types import Embeddings
 from fastapi import FastAPI
 
 
-os.environ["OPENAI_API_KEY"] = "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"
+os.environ["OPENAI_API_KEY"] = ""
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ['OPENAI_API_KEY']
 
